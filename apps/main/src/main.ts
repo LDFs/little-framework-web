@@ -1,6 +1,6 @@
-import { createDasWebApp } from '@little-framework/web'
+import { createWebApp } from '@little-framework/web'
 
-createDasWebApp({
+createWebApp({
   // @ts-ignore
   microAppName: __MICRO_APPNAME__,
   router: { glob: import.meta.glob('@/views/**/router.ts', { eager: true, import: 'default' }) },

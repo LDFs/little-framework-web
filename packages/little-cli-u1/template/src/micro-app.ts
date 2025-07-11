@@ -1,4 +1,4 @@
-import { createDasWebApp } from '@das-fed/web'
+import { createDasWebApp } from '@little-framework/web'
 
 createDasWebApp({
   // @ts-ignore
