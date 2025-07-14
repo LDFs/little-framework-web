@@ -5,8 +5,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "das-cli dev",
-    "build": "das-cli build",
+    "dev": "cup-cli dev",
+    "build": "cup-cli build",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -2,7 +2,7 @@
   "name": "@little-framework/cli",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/index.js",
   "type": "module",
   "bin": {
     "cup-cli": "bin/index.js"
@@ -11,9 +11,13 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "concurrently": "^8.2.2",
     "fast-glob": "^3.3.3",
     "fs-extra": "^11.2.0",
-    "inquirer": "^9.3.2"
+    "inquirer": "^9.3.2",
+    "dayjs": "^1.11.10",
+    "@vitejs/plugin-vue": "^5.1.1",
+    "@vitejs/plugin-vue-jsx": "^3.1.0"
   },
   "keywords": [],
   "author": "",
