@@ -1,7 +1,10 @@
 import { createRouter, createWebHistory } from "vue-router"
+import {mainAppFramework} from '../main-app-framework'
+import {subMicroMenu} from '../store/index.ts'
+
 
 function initRouter(config: any){
-  const { router } = config || {}
+  const { router, microAppName } = config || {}
 
   const globRoutes = Object.values(router?.glob || [])
     .filter((item) => !!item)
@@ -13,6 +16,22 @@ function initRouter(config: any){
     meta.keepAlive = meta.keepAlive ?? true
     return { ...item, meta }
   })
+  if (microAppName) {
+    routes.forEach((item: any) => {
+      item.path = `/${microAppName}${item.path}`
+    })
+    const name = microAppName.split('/').at(-1)
+    if(!subMicroMenu.value[name]) {
+      subMicroMenu.value[name] = routes.map((item: any) => {
+        return {
+          name: item.path.split('/').at(-1) || 'main',
+          routeUrl: item.path,
+        }
+      })
+    }
+  }
+  console.log('subMicroMenu:', subMicroMenu.value);
+
 
   const microAppRoutes: any[] = []
   config.microApps?.forEach((item: any) => {
@@ -20,10 +39,10 @@ function initRouter(config: any){
       .filter((item) => !!item)
       .flat()
       .sort((a: any, b: any) => (a.index ?? 0) - (b.index ?? 0))
-    // 添加子应用路由
+    // 添加子应用路由, 给子路由的路径添加前缀
     microAppRoutes.push(
       ...microAppItemRoutes.map((rItem: any) => {
-        return { ...rItem, path: `${rItem.path}` }
+        return { ...rItem, path: `/${item.microAppName}/${rItem.path}` }
       }),
     )
     // 处理路由重定向
@@ -43,7 +62,7 @@ function initRouter(config: any){
     )
   })
 
-  const inputRouters = router?.routers || []
+  const inputRouters = router?.routers || mainAppFramework.routes
   const actualRoutes = [
     ...routes,
     ...inputRouters,

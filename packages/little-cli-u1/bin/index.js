@@ -19,12 +19,9 @@ const runCli = async (e) => {
   const commandUrl = new URL(`file://${commandPath}`);
   const commandExists = fs.existsSync(commandPath);
   if (commandExists) {
-    console.log('尝试导入模块:', commandUrl.href);
     try {
       const module = await import(commandUrl.href);
-      console.log('模块导入成功');
       if (typeof module.default === "function") {
-        console.log('执行模块默认导出函数');
         module.default();
       }else {
         console.log('模块默认导出不是一个函数');

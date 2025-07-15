@@ -11,7 +11,7 @@ export default defineConfig(({ command }) => {
   return {
     define: { __MICRO_APPNAME__: JSON.stringify(config.microAppName) },
     base: isBuild ? `/${config.microAppName}` : '/',
-    plugins: [vue(), vitePlugin()],
+    plugins: [vue()],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, './src')

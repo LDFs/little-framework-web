@@ -1,5 +1,5 @@
 export default {
-  path: "/kohoku",
+  path: "/",
   component: () => import("./index.vue"),
   meta: { keepAlive: true },
 };

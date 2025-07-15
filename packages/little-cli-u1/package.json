@@ -11,13 +11,13 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "@vitejs/plugin-vue": "^6.0.0",
+    "@vitejs/plugin-vue-jsx": "^5.0.1",
     "concurrently": "^8.2.2",
+    "dayjs": "^1.11.10",
     "fast-glob": "^3.3.3",
     "fs-extra": "^11.2.0",
-    "inquirer": "^9.3.2",
-    "dayjs": "^1.11.10",
-    "@vitejs/plugin-vue": "^5.1.1",
-    "@vitejs/plugin-vue-jsx": "^3.1.0"
+    "inquirer": "^9.3.2"
   },
   "keywords": [],
   "author": "",

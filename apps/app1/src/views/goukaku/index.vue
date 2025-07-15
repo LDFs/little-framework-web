@@ -1,5 +1,5 @@
 <template>
-  <div class="kohoku-page">
+  <div class="goukaku-page">
     <h1>{{ title }}</h1>
     <p>{{ description }}</p>
     <button @click="handleClick">点击我</button>
@@ -10,7 +10,7 @@
 import { ref } from 'vue';
 
 // 定义响应式变量
-const title = ref('欢迎来到 Kohoku 页面');
+const title = ref('欢迎来到 goukaku 页面');
 const description = ref('这是一个使用 Vue 3 和 TypeScript 创建的简单页面。');
 
 // 定义方法
@@ -20,7 +20,7 @@ const handleClick = () => {
 </script>
 
 <style scoped>
-.kohoku-page {
+.goukaku-page {
   text-align: center;
   margin-top: 50px;
 }
