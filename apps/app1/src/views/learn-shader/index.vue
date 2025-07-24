@@ -1,3 +1,7 @@
+/**
+  * 在顶点着色器中，两个向量可以相加
+  * 使用 gl.vertexAttrib1f() 设置一个顶点属性的值
+*/
 <template>
   <div class="kohoku-page">
     <canvas id="webgl-canvas" ref="canvasRef" width="1000" height="800">
@@ -24,21 +28,19 @@ function tryRender() {
   // 顶点着色器
   // vec4的4个参数分别为x,y,z,w齐次坐标（x/w, y/w, z/w）
   const VERTEX_SHADER_SOURCE = `
-    attribute vec4 a_position;
+    attribute vec2 aPosition;
+    attribute vec2 aPosition1;
     void main() {
-      // 矩形
-      // gl_Position = vec4(0.1, 0.1, 0.1, 1.0);
-      // gl_PointSize = 30.0;
-      // 三角形
-      gl_Position = a_position;
+      vec2 newPos = aPosition + aPosition1;
+      gl_Position = vec4(newPos, 2.0, 4.0);
+      gl_PointSize = 10.0;
     }
   `;
   // 片元着色器
   // vec4的4个参数分别为r,g,b,a，颜色
   const FRAGMENT_SHADER_SOURCE = `
     void main() {
-      // gl_FragColor = vec4(1, 0, 0.5, 1);
-      gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+      gl_FragColor = vec4(1, 0, 0.5, 1);
     }
   `;
   const vertexShader = createShader(gl, gl.VERTEX_SHADER, VERTEX_SHADER_SOURCE);
@@ -94,39 +96,58 @@ function draw(gl: WebGLRenderingContext, program: WebGLProgram) {
   // 将缓冲区对象绑定到目标
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
   // 矩形
-  // const positions = [1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0];
-  // 三角形
-  const positions = [0, 0.1, 0, 0.5, 1, 0];
+  const positions = [1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0];
   // 创建并初始化缓冲区对象的数据存储
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
+  const positionLocation = gl.getAttribLocation(program, "aPosition")  // aPosition 对应顶点着色器的东西
+  const positionLocation1 = gl.getAttribLocation(program, "aPosition1")  // aPosition 对应顶点着色器的东西
   const numComponents = 2;
   const type = gl.FLOAT;
   const normalize = false;
   const stride = 0;
-  const offset = 0;
+  const offset = 16;
   // 指定顶点数据布局
   gl.vertexAttribPointer(
-    gl.getAttribLocation(program, "a_position"), // a_position 对应顶点着色器的东西
-    numComponents,
+    // 顶点属性的位置
+    positionLocation, 
+    numComponents,   // 每个顶点属性的元素数量
     type,
     normalize,
     stride,
-    offset
+    offset   // 偏移，需要是字节的倍数
   );
-  // 启用一个顶点属性数组
-  gl.enableVertexAttribArray(gl.getAttribLocation(program, "a_position"));
+  // 启用一个顶点属性数组。。这个启不启用 在这儿 好像没区别
+  // gl.enableVertexAttribArray(positionLocation);
+
+  // 为attribute顶点属性设置常量值。。因为在顶点着色器中的aPosition定义的是vec2，所以这里使用2f函数，传入两个值
+  // gl.vertexAttrib2f(positionLocation1, 2.0, 1.0)
+  // 但是这里使用1f也可以，应该是它默认会给这个值指定默认值
+  gl.vertexAttrib1f(positionLocation, 0.0)
 
   // 设置视口
-  gl.viewport(0, 0, gl.canvas.width / 2, gl.canvas.height / 2);
+  gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
   // 指定清空颜色缓冲区时使用的颜色
   gl.clearColor(0.0, 0.0, 0.0, 0.1);
   // 清空缓冲区到预设值
   gl.clear(gl.COLOR_BUFFER_BIT);
-  // 从缓冲区的数组中渲染数据
-  gl.drawArrays(gl.TRIANGLES, 0, 3); // 三角形
-  // gl.drawArrays(gl.POINTS, 0, 1);   // 矩形
-  // 此处由于顶点着色器里面定义的方式不同，改用矩形的positions渲染不出来矩形
+
+  // 动态改变位置，，但是在这里设置后，背景颜色会为白色
+  // let x = 0;
+  // setInterval(() => {
+  //   x += 0.1;
+  //   if (x > 2.0) {
+  //     x = 0;
+  //   }
+  //   gl.vertexAttrib1f(positionLocation, x);
+  //   gl.drawArrays(gl.POINTS, 0, 1);
+  // }, 200);
+
+  // 从数组数据渲染基元
+  gl.drawArrays(gl.POINTS, 0, 1);   // 点
+
+  // 解绑缓冲区
+  gl.bindBuffer(gl.ARRAY_BUFFER, null);
 }
 </script>
 
