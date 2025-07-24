@@ -97,16 +97,18 @@ function draw(gl: WebGLRenderingContext, program: WebGLProgram) {
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
   // 矩形
   const positions = [1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0];
+  // 三角形
+  // const positions = [0, 0.1, 0, 0.5, 1, 0];
   // 创建并初始化缓冲区对象的数据存储
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
   const positionLocation = gl.getAttribLocation(program, "aPosition")  // aPosition 对应顶点着色器的东西
-  const positionLocation1 = gl.getAttribLocation(program, "aPosition1")  // aPosition 对应顶点着色器的东西
+  // const positionLocation1 = gl.getAttribLocation(program, "aPosition1")  // aPosition 对应顶点着色器的东西
   const numComponents = 2;
   const type = gl.FLOAT;
   const normalize = false;
   const stride = 0;
-  const offset = 16;
+  const offset = 0;
   // 指定顶点数据布局
   gl.vertexAttribPointer(
     // 顶点属性的位置
@@ -118,12 +120,13 @@ function draw(gl: WebGLRenderingContext, program: WebGLProgram) {
     offset   // 偏移，需要是字节的倍数
   );
   // 启用一个顶点属性数组。。这个启不启用 在这儿 好像没区别
+  // ***** 绘制POINTS时，有没有都可以，不过绘制的位置不同，，，绘制三角形时 需要
   // gl.enableVertexAttribArray(positionLocation);
 
   // 为attribute顶点属性设置常量值。。因为在顶点着色器中的aPosition定义的是vec2，所以这里使用2f函数，传入两个值
   // gl.vertexAttrib2f(positionLocation1, 2.0, 1.0)
   // 但是这里使用1f也可以，应该是它默认会给这个值指定默认值
-  gl.vertexAttrib1f(positionLocation, 0.0)
+  // gl.vertexAttrib1f(positionLocation, 0.2)
 
   // 设置视口
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -145,6 +148,7 @@ function draw(gl: WebGLRenderingContext, program: WebGLProgram) {
 
   // 从数组数据渲染基元
   gl.drawArrays(gl.POINTS, 0, 1);   // 点
+  // gl.drawArrays(gl.TRIANGLES, 0, 3); // 三角形
 
   // 解绑缓冲区
   gl.bindBuffer(gl.ARRAY_BUFFER, null);

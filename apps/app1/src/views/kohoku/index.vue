@@ -28,7 +28,7 @@ function tryRender() {
     void main() {
       // 矩形
       // gl_Position = vec4(0.1, 0.1, 0.1, 1.0);
-      // gl_PointSize = 30.0;
+      gl_PointSize = 30.0;
       // 三角形
       gl_Position = a_position;
     }
@@ -126,7 +126,6 @@ function draw(gl: WebGLRenderingContext, program: WebGLProgram) {
   // 从缓冲区的数组中渲染数据
   gl.drawArrays(gl.TRIANGLES, 0, 3); // 三角形
   // gl.drawArrays(gl.POINTS, 0, 1);   // 矩形
-  // 此处由于顶点着色器里面定义的方式不同，改用矩形的positions渲染不出来矩形
 }
 </script>
 
