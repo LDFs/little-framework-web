@@ -96,7 +96,7 @@ function draw(gl: WebGLRenderingContext, program: WebGLProgram) {
   // 矩形
   // const positions = [1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0];
   // 三角形
-  const positions = [0, 0.1, 0, 0.5, 1, 0];
+  const positions = [0, -1, 0, 0.5, 1, 0];
   // 创建并初始化缓冲区对象的数据存储
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
@@ -118,12 +118,12 @@ function draw(gl: WebGLRenderingContext, program: WebGLProgram) {
   gl.enableVertexAttribArray(gl.getAttribLocation(program, "a_position"));
 
   // 设置视口
-  gl.viewport(0, 0, gl.canvas.width / 2, gl.canvas.height / 2);
+  gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
   // 指定清空颜色缓冲区时使用的颜色
   gl.clearColor(0.0, 0.0, 0.0, 0.1);
   // 清空缓冲区到预设值
   gl.clear(gl.COLOR_BUFFER_BIT);
-  // 从缓冲区的数组中渲染数据
+  // 从缓冲区的数组中渲染数据。。。因为count = 3，所以顶点着色器将运行三次，每个点运行一次？
   gl.drawArrays(gl.TRIANGLES, 0, 3); // 三角形
   // gl.drawArrays(gl.POINTS, 0, 1);   // 矩形
 }
@@ -133,6 +133,7 @@ function draw(gl: WebGLRenderingContext, program: WebGLProgram) {
 .kohoku-page {
   text-align: center;
   margin-top: 50px;
+  background-color: azure;
 }
 
 button {

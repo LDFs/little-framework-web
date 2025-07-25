@@ -43,6 +43,7 @@ function tryRender() {
       gl_FragColor = vec4(1, 0, 0.5, 1);
     }
   `;
+  // 每一对顶点着色器和片元着色器组合在一起，构成一个program(着色程序)
   const vertexShader = createShader(gl, gl.VERTEX_SHADER, VERTEX_SHADER_SOURCE);
   const fragmentShader = createShader(
     gl,
@@ -93,13 +94,13 @@ function createProgram(
 function draw(gl: WebGLRenderingContext, program: WebGLProgram) {
   // 创建一个缓冲区对象
   const positionBuffer = gl.createBuffer();
-  // 将缓冲区对象绑定到目标
+  // 将缓冲区对象绑定到目标点
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
   // 矩形
   const positions = [1.0, 1.0, -1.0, 1.0, 1.0, -1.0, -1.0, -1.0];
   // 三角形
   // const positions = [0, 0.1, 0, 0.5, 1, 0];
-  // 创建并初始化缓冲区对象的数据存储
+  // 通过目标点gl.ARRAY_BUFFER, 向缓冲区中存放数据
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 
   const positionLocation = gl.getAttribLocation(program, "aPosition")  // aPosition 对应顶点着色器的东西

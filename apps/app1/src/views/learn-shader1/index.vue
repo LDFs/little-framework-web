@@ -1,12 +1,12 @@
 /**
 * https://juejin.cn/post/7245682364932554808?searchId=2025072109370372E6EEB364F6AE531E01#heading-27 的后几个例子
 * 主要是鼠标交互，使用 attribute 来设置顶点，鼠标点击/移动绘制点/线
-* 使用 uniform 来设置颜色
+* 使用 uniform 来设置全局变量，改变颜色
 */
 <template>
   <div class="kohoku-page">
     <div class="btns-container">
-      <button v-for="item in btns">{{ item.name }}</button>
+      <button v-for="item in btns" @click="() => handleChange(item.id)">{{ item.name }}</button>
     </div>
     <canvas id="webgl-canvas" ref="canvasRef" width="1000" height="800">
       此浏览器不支持canvas
@@ -16,49 +16,58 @@
 
 <script lang="ts" setup>
 import { ref, onMounted } from "vue";
+import {createProgramFromScripts, resizeCanvasToMatchDisplaySize} from '@/utils/webglUtils.ts'
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 const activedId = ref(1)
-// 没实现，点击按钮来切换鼠标控制方式
+const gl = ref<WebGLRenderingContext | null | undefined>(null)
+const program = ref<WebGLProgram | null>(null)
+// 点击按钮来切换鼠标控制方式
 const btns = [
   {
     name: '点击显示点',
-    fn: () => activedId.value = 1,
     id: 1
   },
   {
     name: '鼠标移动显示点',
-    fn: () => activedId.value = 2,
     id: 2
   },
   {
     name: '鼠标移动显示线',
-    fn: () => activedId.value = 3,
     id: 3
   },
   {
     name: '点击显示不同颜色的点',
-    fn: () => activedId.value = 4,
     id: 4
   }
 ]
+const events: Array<{ type: string; listener: EventListenerOrEventListenerObject }> = []
+function handleChange(id: number) {
+  activedId.value = id
+  events.map((item) => {
+    canvasRef.value?.removeEventListener(item.type, item.listener)
+  })
+  draw(gl.value, program.value);
+}
 
 onMounted(() => {
   tryRender();
 });
-const gl = ref<WebGLRenderingContext | null | undefined>(null)
-const program = ref<WebGLProgram | null>(null)
 
 function tryRender() {
+  if(!canvasRef.value){
+    console.error("Canvas element not found");
+    return;
+  }
   gl.value = canvasRef.value?.getContext("webgl");
-  if (!canvasRef.value) return;
   if (!gl.value) {
     console.error("WebGL not supported");
     return;
   }
+  resizeCanvasToMatchDisplaySize(canvasRef.value)
 
   const VERTEX_SHADER_SOURCE = `
-    uniform vec4 uPosition;    // 也可以使用 uniform 标识符
+    uniform vec4 uPosition;    // 也可以使用 uniform 标识符, 创建全局变量
     attribute vec2 aPosition;
     void main() {
       gl_Position = vec4(aPosition, 1.0, 1.0);
@@ -72,44 +81,13 @@ function tryRender() {
       gl_FragColor = vec4(uColor.r, uColor.g, 0.0, 1.0);    // vec4(1, 0, 0.5, 1);
     }
   `;
-  const vertexShader = createShader(gl.value, gl.value.VERTEX_SHADER, VERTEX_SHADER_SOURCE);
-  const fragmentShader = createShader(
-    gl.value,
-    gl.value.FRAGMENT_SHADER,
-    FRAGMENT_SHADER_SOURCE
-  );
 
-  program.value = createProgram(gl.value, vertexShader, fragmentShader);
-  draw(gl.value, program.value);
-}
-function createShader(gl: WebGLRenderingContext, type: GLenum, source: string) {
-  const shader = gl.createShader(type);
-  gl.shaderSource(shader, source);
-  gl.compileShader(shader);
-
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    console.error("编译着色器时发生错误：" + gl.getShaderInfoLog(shader));
-    gl.deleteShader(shader);
-    return null;
+  program.value = createProgramFromScripts(gl.value, VERTEX_SHADER_SOURCE, FRAGMENT_SHADER_SOURCE)
+  if(program.value)
+    draw(gl.value, program.value);
+  else {
+    throw("*** Error: program创建失败！");
   }
-
-  return shader;
-}
-
-function createProgram(
-  gl: WebGLRenderingContext,
-  vertexShader: WebGLShader,
-  fragmentShader: WebGLShader
-) {
-  const program = gl.createProgram();
-
-  gl.attachShader(program, vertexShader);
-  gl.attachShader(program, fragmentShader);
-
-  gl.linkProgram(program);
-  gl.useProgram(program);
-
-  return program;
 }
 
 function draw(gl: WebGLRenderingContext, program: WebGLProgram) {
@@ -118,22 +96,6 @@ function draw(gl: WebGLRenderingContext, program: WebGLProgram) {
 
   const positionLocation = gl.getAttribLocation(program, "aPosition"); // aPosition 对应顶点着色器的东西
   const colorLocation = gl.getUniformLocation(program, 'uColor');
-  const numComponents = 2;
-  const type = gl.FLOAT;
-  const normalize = false;
-  const stride = 0;
-  const offset = 16;
-  // 指定顶点数据布局
-  gl.vertexAttribPointer(
-    // 顶点属性的位置
-    positionLocation,
-    numComponents, // 每个顶点属性的元素数量
-    type,
-    normalize,
-    stride,
-    offset // 偏移，需要是字节的倍数
-  );
-  // gl.vertexAttrib1f(positionLocation, 0.0);
 
   // 设置视口
   gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -143,11 +105,16 @@ function draw(gl: WebGLRenderingContext, program: WebGLProgram) {
 
   // 渲染
   // gl.drawArrays(gl.POINTS, 0, 1); // 点
-  // mouseClick(positionLocation, gl)
-  // mouseMove(positionLocation, gl)
-  // mouseMoveLine(positionLocation, gl)
-
-  mouseClickColor(positionLocation, colorLocation, gl)
+  console.log('activedId.value: ', activedId.value);
+  if(activedId.value === 1){
+    mouseClick(positionLocation, gl)
+  }else if(activedId.value === 2) {
+    mouseMove(positionLocation, gl)
+  }else if(activedId.value === 3){
+    mouseMoveLine(positionLocation, gl)
+  }else {
+    mouseClickColor(positionLocation, colorLocation, gl)
+  }
 
   // 解绑缓冲区
   gl.bindBuffer(gl.ARRAY_BUFFER, null);
@@ -156,7 +123,7 @@ function draw(gl: WebGLRenderingContext, program: WebGLProgram) {
 // 鼠标点击出现点
 function mouseClick(positionLocation: number, gl: WebGLRenderingContext){
   if(!canvasRef.value) return 
-  canvasRef.value.onclick  = function (event) {
+  const handleClick = (event: MouseEvent) => {
     // 坐标
     const x = event.clientX;
     const y = event.clientY;
@@ -172,15 +139,20 @@ function mouseClick(positionLocation: number, gl: WebGLRenderingContext){
     const ex = (domx - halfWidth) / halfWidth
     const ey = (halfHeight - domy) / halfHeight
 
+    gl.clearColor(0.0, 0.0, 0.0, 0.1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
     gl.vertexAttrib2f(positionLocation, ex, ey);
     gl.drawArrays(gl.POINTS, 0, 1);
-
   };
+
+  canvasRef.value.addEventListener('click', handleClick);
+  events.push({type: 'click', listener: handleClick})
 }
 // 鼠标移动出现点
 function mouseMove(positionLocation: number, gl: WebGLRenderingContext){
   if(!canvasRef.value) return 
-  canvasRef.value.onmousemove  = function (event) {
+  const handleMove = (event: MouseEvent) => {
     // 坐标
     const x = event.clientX;
     const y = event.clientY;
@@ -196,15 +168,20 @@ function mouseMove(positionLocation: number, gl: WebGLRenderingContext){
     const ex = (domx - halfWidth) / halfWidth
     const ey = (halfHeight - domy) / halfHeight
 
+    gl.clearColor(0.0, 0.0, 0.0, 0.1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
     gl.vertexAttrib2f(positionLocation, ex, ey);
     gl.drawArrays(gl.POINTS, 0, 1);
   };
+  canvasRef.value.addEventListener('mousemove', handleMove);
+  events.push({type: 'mousemove', listener: handleMove})
 }
 // 鼠标移动出现线
 function mouseMoveLine(positionLocation: number, gl: WebGLRenderingContext){
   if(!canvasRef.value) return 
   const points: any[] = [];
-  canvasRef.value.onmousemove  = function (event) {
+  const handleMove = (event: MouseEvent) => {
     // 坐标
     const x = event.clientX;
     const y = event.clientY;
@@ -220,8 +197,8 @@ function mouseMoveLine(positionLocation: number, gl: WebGLRenderingContext){
     const ex = (domx - halfWidth) / halfWidth
     const ey = (halfHeight - domy) / halfHeight
 
-    // gl.vertexAttrib2f(positionLocation, ex, ey);
-    // gl.drawArrays(gl.POINTS, 0, 1);
+    gl.clearColor(0.0, 0.0, 0.0, 0.1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
     points.push({
       ex, ey
     });
@@ -232,13 +209,15 @@ function mouseMoveLine(positionLocation: number, gl: WebGLRenderingContext){
     }
 
   };
+  canvasRef.value.addEventListener('mousemove', handleMove);
+  events.push({type: 'mousemove', listener: handleMove})
 }
 
 // 鼠标点击绘制不同颜色的点
 function mouseClickColor(positionLocation: number, colorLocation: WebGLUniformLocation | null, gl: WebGLRenderingContext) {
   if(!canvasRef.value) return 
   const points: any[] = [];
-  canvasRef.value.onclick  = function (event) {
+  const handleClick = (event: MouseEvent) => {
     // 坐标
     const x = event.clientX;
     const y = event.clientY;
@@ -253,6 +232,8 @@ function mouseClickColor(positionLocation: number, colorLocation: WebGLUniformLo
     // 将点击位置转换为WebGL坐标系
     const ex = (domx - halfWidth) / halfWidth
     const ey = (halfHeight - domy) / halfHeight
+    gl.clearColor(0.0, 0.0, 0.0, 0.1);
+    gl.clear(gl.COLOR_BUFFER_BIT);
 
     points.push({
       ex, ey
@@ -267,6 +248,8 @@ function mouseClickColor(positionLocation: number, colorLocation: WebGLUniformLo
       gl.drawArrays(gl.POINTS, 0, 1);
     }
   };
+  canvasRef.value.addEventListener('click', handleClick);
+  events.push({type: 'click', listener: handleClick})
 }
 
 </script>
