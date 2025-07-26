@@ -9,6 +9,7 @@
 
 <script lang="ts" setup>
 import { ref, onMounted } from "vue";
+import { createProgramFromScripts, resizeCanvasToMatchDisplaySize } from '@/utils/webglUtils.ts';
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 onMounted(() => {
@@ -65,6 +66,60 @@ function tryWebgl() {
     // 使用指定的清除颜色清除颜色缓冲区，清空画布
     gl.clear(gl.COLOR_BUFFER_BIT);
   }
+
+  const vertexShaderSource = `
+    attribute vec4 aPosition;
+    attribute vec4 aColor;
+    varying vec4 vColor;
+    void main() {
+      gl_Position = aPosition;
+      vColor = aColor;
+    }
+  `;
+  const fragmentShaderSource = `
+    precision mediump float;
+    varying vec4 vColor;
+    void main() {
+      gl_FragColor = vColor;
+    }
+  `;
+  drawByMe1(gl, vertexShaderSource, fragmentShaderSource);
+}
+
+function drawByMe1(gl: WebGLRenderingContext, vertexShaderSource: string, fragmentShaderSource: string) {
+  const program = createProgramFromScripts(gl, vertexShaderSource, fragmentShaderSource);
+  if (!program) {
+    console.error("Failed to create program");
+    return;
+  }
+  gl.useProgram(program);
+  const positionBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+  const positions = new Float32Array([
+    -0.5, -0.5, 0.329, 0.123, 0.564, 0.7,
+    0.5, -0.5, 0.187, 0.333, 0.564, 0.8,
+    0.0, 0.5, 0.329, 0.91, 0.512, 0.9,
+  ]);
+  gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+  const positionLocation = gl.getAttribLocation(program, "aPosition");
+  gl.enableVertexAttribArray(positionLocation);
+  gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 6 * Float32Array.BYTES_PER_ELEMENT, 0);
+
+  const aColorLocation = gl.getAttribLocation(program, "aColor");
+  gl.vertexAttribPointer(
+    aColorLocation,
+    4,           // 每个点的颜色属性有4个元素
+    gl.FLOAT,
+    false,
+    6 * Float32Array.BYTES_PER_ELEMENT,
+    2 * Float32Array.BYTES_PER_ELEMENT
+  );
+  gl.enableVertexAttribArray(aColorLocation);
+
+  gl.clearColor(0.0, 0.0, 0.0, 0.2); // 设置背景色为黑色
+  gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.drawArrays(gl.TRIANGLES, 0, 3); // 绘制三角形
+  gl.flush();
 }
 </script>
 
