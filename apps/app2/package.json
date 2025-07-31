@@ -1,0 +1,32 @@
+{
+  "name": "app1",
+  "description": "pnpm-workspace app for def",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "cup-cli dev",
+    "build": "cup-cli build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@little-framework/cli": "workspace:*",
+    "@little-framework/web": "workspace:*",
+    "vue": "^3.4.31",
+    "vue-router": "^4.4.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.178.1",
+    "@vitejs/plugin-vue": "^6.0.0",
+    "@vitejs/plugin-vue-jsx": "^5.0.1",
+    "consola": "^3.4.2",
+    "rollup-plugin-visualizer": "^6.0.3",
+    "three": "^0.178.0",
+    "unplugin-auto-import": "^19.3.0",
+    "unplugin-vue-components": "^28.8.0",
+    "vite": "^7.0.3",
+    "vite-plugin-compression": "^0.5.1",
+    "vite-plugin-style-import": "^2.0.0",
+    "vue-tsc": "^3.0.1"
+  }
+}
